@@ -90,6 +90,52 @@ Enterprise, and private-repo outside collaborators count as paid seats on paid
 organization plans. This script intentionally requires the selected personal
 owner; it does not silently configure organization-wide access.
 
+## API access and credits
+
+**Current status: not automated.** The starter reads provider keys from the
+candidate's local `.env.local`. This tooling creates GitHub repositories and
+invitations only when staff run it. It does not issue API credentials, allocate
+credits, enforce a spending cap, expire access, or send assignment emails.
+Funded access and a real voice test are still pending.
+
+Candidates run the editor, LiveKit server, and agent on their own laptop. They
+need internet access to OpenAI, Deepgram, and ElevenLabs, but no cloud hosting
+account. The team funds provider usage; candidates should not buy credits.
+
+### Proposed automated flow
+
+1. The candidate completes Maya and is approved for the assignment under the
+   hiring team's selection rule.
+2. Provision their private GitHub repository once, using their verified identity.
+3. A company-hosted access service creates one candidate credential with a fixed
+   total allowance and expiry. Repeated events reuse the grant; they never add credits.
+4. Once access is ready, email a private activation link and repository invitation
+   instructions. The activation page provides local configuration, remaining
+   allowance, and expiry. Never put credentials in GitHub or email bodies.
+5. The local agent calls OpenAI, Deepgram, and ElevenLabs through that service.
+   Provider keys stay on the company's server. This requires updating the starter;
+   it cannot use a candidate credential with its current direct-provider setup.
+6. The service stops paid access at the allowance or expiry, including active
+   audio streams. Only staff can top up an allowance. Local work and GitHub remain available.
+
+The service must reserve budget before forwarding work, account for concurrent
+requests and streaming usage, and reject new paid work when usage cannot be
+checked. Limit allowed models, endpoints, request sizes, and audio session lengths.
+Use conservative reservations with a billing margin, reconcile actual costs,
+and test cutoff behavior before describing the allowance as a hard spending cap.
+A limit inside candidate-controlled code is not enforceable.
+
+Provider controls differ: OpenAI documents [project hard spend limits](https://developers.openai.com/api/reference/typescript/resources/admin/subresources/organization/subresources/projects),
+and ElevenLabs offers [monthly character limits on service-account keys](https://elevenlabs.io/docs/api-reference/service-accounts/api-keys/create),
+with [service accounts restricted to multi-seat customers](https://elevenlabs.io/docs/overview/administration/workspaces/service-accounts).
+Deepgram's [temporary-token expiry does not end an existing audio connection](https://developers.deepgram.com/guides/fundamentals/token-based-authentication).
+These are separate controls, not one shared candidate allowance. Confirm what our
+funded accounts support before choosing direct key issuance instead of the service.
+
+Before implementation: choose the allowance, expiry policy, and Maya selection
+trigger; configure funded provider accounts and company hosting. Keep provider
+administration credentials in server secrets. No paid access is enabled by this proposal.
+
 ## Rollout order
 
 1. Publish and verify the public starter and these private operations tools.
