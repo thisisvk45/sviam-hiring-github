@@ -9,7 +9,7 @@ test("invalid identifiers cannot become API paths", () => {
   assert.throws(() => validate({ ...options, candidate: "owner" }));
 });
 test("public repos and forks are rejected before inviting a candidate", () => {
-  for (const repo of [{ private: false, visibility: "public" }, { private: true, visibility: "private", fork: true }]) assert.throws(() => auditAccess(() => repo, "owner/repo", ["owner", "candidate"]));
+  for (const repo of [{ private: false, visibility: "public" }, { private: false, visibility: "public", is_template: true }, { private: true, visibility: "private", fork: true }]) assert.throws(() => auditAccess(() => repo, "owner/repo", ["owner", "candidate"]));
 });
 test("unexpected access is detected on subsequent collaborator pages", () => {
   const api = (_method, path) => {
@@ -45,7 +45,7 @@ test("a name collision cannot transfer an existing assignment to another person"
   assert.deepEqual(writes, []);
 });
 
-function successfulApi({ failRegistryWrite = false, wrongTree = false } = {}) {
+function successfulApi({ failRegistryWrite = false, wrongTree = false, publicTemplate = false } = {}) {
   const writes = [];
   let created = false;
   let record;
@@ -56,7 +56,7 @@ function successfulApi({ failRegistryWrite = false, wrongTree = false } = {}) {
     if (method === "GET") {
       if (path === "users/candidate") return { id: 222, login: "candidate", type: "User" };
       if (path === "user") return { login: "owner" };
-      if (path === "repos/owner/template") return { ...metadata, is_template: true, default_branch: "main" };
+      if (path === "repos/owner/template") return { ...metadata, private: !publicTemplate, visibility: publicTemplate ? "public" : "private", is_template: true, default_branch: "main" };
       if (path === "repos/owner/sviam-hiring-github") return metadata;
       if (path.includes("contents/assignments/")) return record ? { content: record } : missing();
       if (path === "repos/owner/assignment-candidate-001") return created ? metadata : missing();
@@ -109,4 +109,13 @@ test("a failed registry write or changed template never sends a candidate invita
     assert.throws(() => provision(fake.api, options), /Registry write failed|Template changed/);
     assert.equal(fake.writes.some(write => write.path.endsWith("/collaborators/candidate")), false);
   }
+});
+
+test("a public starter still provisions an independent private candidate repository", () => {
+  const fake = successfulApi({ publicTemplate: true });
+  const result = provision(fake.api, options);
+  assert.equal(result.private, true);
+  const generation = fake.writes.find(write => write.path.endsWith("/generate"));
+  assert.equal(generation.body.private, true);
+  assert.equal(fake.writes.filter(write => write.path.endsWith("/collaborators/candidate")).length, 1);
 });

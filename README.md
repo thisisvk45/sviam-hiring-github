@@ -1,7 +1,7 @@
 # SViam · Private GitHub assignment operations
 
 Staff-only tooling for **one independent private repository per candidate**.
-The starter is [sviam-livekit-editor-assignment](https://github.com/thisisvk45/sviam-livekit-editor-assignment).
+The public starter is [sviam-livekit-editor-assignment](https://github.com/thisisvk45/sviam-livekit-editor-assignment).
 
 ## Visibility contract
 
@@ -12,8 +12,9 @@ submissions. A reviewer with repository access can also see its PRs. A candidate
 does not need to merge a PR to submit. Private access cannot prevent an authorized
 candidate from copying their own checkout elsewhere.
 
-Do not collect candidates into one repository, grant access to this operations
-repository, or grant access to the master template. Generate independent copies.
+Do not collect candidates into one repository or grant them access to this operations
+repository. The master template is public to read; only staff may write to it.
+Generate independent private copies for candidate work.
 This account-based pilot gives access only to the owner and assigned candidate.
 If additional reviewers are needed, implement an explicit reviewed allowlist and
 prefer an organization for granular reviewer permissions.
@@ -38,7 +39,7 @@ node provision.mjs --candidate THEIR_GITHUB_USERNAME --id OPAQUE_CANDIDATE_ID --
 
 The deadline above is an example, not the assignment's default. Use a lowercase
 opaque ID of 3–40 characters. The script validates the owner, template, candidate,
-private visibility, baseline tree, existing collaborators, and pending invitations
+candidate repository privacy, baseline tree, existing collaborators, and pending invitations
 before granting access. It records the candidate's numeric GitHub user ID,
 repository ID, and starter revision in this staff-only repository under
 `assignments/ID.json`. A copy in the candidate's `.assignment.json` is for reference
@@ -91,7 +92,7 @@ owner; it does not silently configure organization-wide access.
 
 ## Rollout order
 
-1. Publish and verify the private starter and these operations tools.
+1. Publish and verify the public starter and these private operations tools.
 2. Update the hiring flow to use GitHub PRs as submissions. Existing Python
    assignment invitations stay tied to their original version.
 3. Configure funded provider access and test real voice end to end.
